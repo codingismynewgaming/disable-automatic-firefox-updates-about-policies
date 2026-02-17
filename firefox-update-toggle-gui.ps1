@@ -105,6 +105,21 @@ function Get-FirefoxPath {
     return $null
 }
 
+function Get-WindowsAppTheme {
+    $personalizePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+
+    try {
+        $value = Get-ItemPropertyValue -Path $personalizePath -Name "AppsUseLightTheme" -ErrorAction Stop
+        if ([int]$value -eq 0) {
+            return "Dark"
+        }
+    } catch {
+        # Default to light when the theme preference is unavailable.
+    }
+
+    return "Light"
+}
+
 function New-ActionButton {
     param(
         [Parameter(Mandatory = $true)]
@@ -129,6 +144,67 @@ function New-ActionButton {
     return $button
 }
 
+function Set-StatusColor {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Status
+    )
+
+    if ($Status -like "DISABLED*") {
+        $statusValue.ForeColor = $script:StatusDisabledColor
+    } elseif ($Status -like "ENABLED*") {
+        $statusValue.ForeColor = $script:StatusEnabledColor
+    } else {
+        $statusValue.ForeColor = $script:StatusUnknownColor
+    }
+}
+
+function Set-AppTheme {
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("Light", "Dark")]
+        [string]$Theme
+    )
+
+    if ($Theme -eq "Dark") {
+        $form.BackColor = [System.Drawing.Color]::FromArgb(30, 34, 39)
+        $title.ForeColor = [System.Drawing.Color]::FromArgb(236, 240, 245)
+        $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(187, 197, 208)
+        $themeLabel.ForeColor = [System.Drawing.Color]::FromArgb(187, 197, 208)
+        $statusHeader.ForeColor = [System.Drawing.Color]::FromArgb(220, 228, 236)
+        $lastUpdated.ForeColor = [System.Drawing.Color]::FromArgb(170, 181, 193)
+        $statusDetails.BackColor = [System.Drawing.Color]::FromArgb(20, 24, 29)
+        $statusDetails.ForeColor = [System.Drawing.Color]::FromArgb(226, 233, 240)
+        $themeToggle.BackColor = [System.Drawing.Color]::FromArgb(63, 71, 80)
+        $themeToggle.ForeColor = [System.Drawing.Color]::FromArgb(244, 247, 251)
+        $themeToggle.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(92, 102, 112)
+        $themeToggle.Text = "Dark: On"
+
+        $script:StatusDisabledColor = [System.Drawing.Color]::FromArgb(255, 107, 122)
+        $script:StatusEnabledColor = [System.Drawing.Color]::FromArgb(120, 224, 143)
+        $script:StatusUnknownColor = [System.Drawing.Color]::FromArgb(255, 201, 107)
+    } else {
+        $form.BackColor = [System.Drawing.Color]::FromArgb(244, 247, 251)
+        $title.ForeColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
+        $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
+        $themeLabel.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
+        $statusHeader.ForeColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
+        $lastUpdated.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
+        $statusDetails.BackColor = [System.Drawing.Color]::White
+        $statusDetails.ForeColor = [System.Drawing.Color]::FromArgb(31, 41, 55)
+        $themeToggle.BackColor = [System.Drawing.Color]::FromArgb(227, 234, 243)
+        $themeToggle.ForeColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
+        $themeToggle.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(169, 181, 198)
+        $themeToggle.Text = "Dark: Off"
+
+        $script:StatusDisabledColor = [System.Drawing.Color]::FromArgb(200, 35, 51)
+        $script:StatusEnabledColor = [System.Drawing.Color]::FromArgb(25, 135, 84)
+        $script:StatusUnknownColor = [System.Drawing.Color]::FromArgb(220, 149, 0)
+    }
+
+    Set-StatusColor -Status $statusValue.Text
+}
+
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Firefox Update Policy Toggle"
 $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
@@ -141,7 +217,7 @@ $form.BackColor = [System.Drawing.Color]::FromArgb(244, 247, 251)
 $title = New-Object System.Windows.Forms.Label
 $title.Text = "Firefox Update Policy"
 $title.Location = New-Object System.Drawing.Point(22, 18)
-$title.Size = New-Object System.Drawing.Size(520, 34)
+$title.Size = New-Object System.Drawing.Size(350, 34)
 $title.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
 $title.ForeColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
 $form.Controls.Add($title)
@@ -149,10 +225,29 @@ $form.Controls.Add($title)
 $subtitle = New-Object System.Windows.Forms.Label
 $subtitle.Text = "Control automatic updates through organizational policy."
 $subtitle.Location = New-Object System.Drawing.Point(24, 54)
-$subtitle.Size = New-Object System.Drawing.Size(540, 20)
+$subtitle.Size = New-Object System.Drawing.Size(360, 20)
 $subtitle.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
 $form.Controls.Add($subtitle)
+
+$themeLabel = New-Object System.Windows.Forms.Label
+$themeLabel.Text = "Theme"
+$themeLabel.Location = New-Object System.Drawing.Point(404, 26)
+$themeLabel.Size = New-Object System.Drawing.Size(54, 20)
+$themeLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$themeLabel.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
+$form.Controls.Add($themeLabel)
+
+$themeToggle = New-Object System.Windows.Forms.CheckBox
+$themeToggle.Appearance = [System.Windows.Forms.Appearance]::Button
+$themeToggle.Location = New-Object System.Drawing.Point(462, 20)
+$themeToggle.Size = New-Object System.Drawing.Size(102, 28)
+$themeToggle.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$themeToggle.FlatAppearance.BorderSize = 1
+$themeToggle.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$themeToggle.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$themeToggle.UseVisualStyleBackColor = $false
+$form.Controls.Add($themeToggle)
 
 $statusHeader = New-Object System.Windows.Forms.Label
 $statusHeader.Text = "Current Status"
@@ -208,18 +303,20 @@ $refreshStatus = {
 
     if ($status -like "DISABLED*") {
         $statusValue.Text = "DISABLED"
-        $statusValue.ForeColor = [System.Drawing.Color]::FromArgb(200, 35, 51)
     } elseif ($status -like "ENABLED*") {
         $statusValue.Text = "ENABLED"
-        $statusValue.ForeColor = [System.Drawing.Color]::FromArgb(25, 135, 84)
     } else {
         $statusValue.Text = "UNKNOWN"
-        $statusValue.ForeColor = [System.Drawing.Color]::FromArgb(220, 149, 0)
     }
+    Set-StatusColor -Status $statusValue.Text
 
     $statusDetails.Text = $detailText
     $lastUpdated.Text = "Last checked: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 }
+
+$startupTheme = Get-WindowsAppTheme
+$themeToggle.Checked = ($startupTheme -eq "Dark")
+Set-AppTheme -Theme $startupTheme
 
 $disableButton.Add_Click({
     $result = Invoke-PolicyCommandElevated -BatchFile $batchPath -Action "disable"
@@ -285,6 +382,14 @@ $enableButton.Add_Click({
 
 $refreshButton.Add_Click({
     & $refreshStatus
+})
+
+$themeToggle.Add_CheckedChanged({
+    if ($themeToggle.Checked) {
+        Set-AppTheme -Theme "Dark"
+    } else {
+        Set-AppTheme -Theme "Light"
+    }
 })
 
 $aboutPoliciesButton.Add_Click({
