@@ -1,3 +1,5 @@
+The forced automatic updates from Firefox have been a pain for me for a very long time: RUnning multiple profiles at the same time scattered over multiple virtual desktops ... and then an update happens, everything suddently is allover the place and data loss also happended. I tried many solutions, none worked. Until this. Finally! A working way to disable those friggin forced updates on regular Firefox!!
+
 # Disable Automatic Firefox Updates (Organization Policy)
 
 Small Windows scripts to toggle Firefox automatic updates through Mozilla organization policy.
