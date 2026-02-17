@@ -72,18 +72,32 @@ function Invoke-PolicyCommandElevated {
 }
 
 function Get-FirefoxPath {
-    $candidate = (Get-Command "firefox.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).Source
-    if ($candidate) {
-        return $candidate
+    $command = Get-Command -Name "firefox.exe" -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -ne $command) {
+        $candidate = $null
+        if ($command.PSObject.Properties.Match("Path").Count -gt 0) {
+            $candidate = $command.Path
+        } elseif ($command.PSObject.Properties.Match("Source").Count -gt 0) {
+            $candidate = $command.Source
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($candidate) -and (Test-Path -LiteralPath $candidate)) {
+            return $candidate
+        }
     }
 
-    $paths = @(
-        (Join-Path $env:ProgramFiles "Mozilla Firefox\firefox.exe"),
-        (Join-Path ${env:ProgramFiles(x86)} "Mozilla Firefox\firefox.exe")
-    )
+    $baseDirs = @(
+        [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles),
+        [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86),
+        [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+    $paths = $baseDirs | ForEach-Object {
+        Join-Path -Path $_ -ChildPath "Mozilla Firefox\firefox.exe"
+    }
 
     foreach ($path in $paths) {
-        if ($path -and (Test-Path -LiteralPath $path)) {
+        if (Test-Path -LiteralPath $path) {
             return $path
         }
     }
