@@ -6,6 +6,8 @@ The project sets or removes this registry policy value:
 
 - `HKLM\SOFTWARE\Policies\Mozilla\Firefox\DisableAppUpdate` (`REG_DWORD`)
 
+But dont forget to frequently update your Firefox in other ways! (E.g. manual updates, or via Uniget, etc)
+
 ## Overview
 
 Use this project if you want a simple way to:
@@ -23,14 +25,11 @@ You can use either a GUI or CLI workflow.
 - Button to open `about:policies` in Firefox
 - Automatic Windows theme detection plus manual Light/Dark switch
 - CLI batch tool (`firefox-update-toggle.bat`) with `disable`, `enable`, `status`, and `help` commands
-- Interactive menu mode when run without arguments
-- Admin privilege checks for write actions
 
 ## Requirements
 
 - Windows (PowerShell + `reg.exe` available)
 - Administrator rights for `disable` / `enable`
-- Firefox installed (required only for auto-opening `about:policies`)
 
 ## GUI Usage
 
@@ -87,5 +86,7 @@ reg query "HKLM\SOFTWARE\Policies\Mozilla\Firefox" /v DisableAppUpdate
 ## Screenshots
 
 ![Main GUI view](./Screenshot%202026-02-17%20224452.png)
+
 ![Status/details view](./Screenshot%202026-02-17%20224536.png)
+
 ![Policy action view](./Screenshot%202026-02-17%20224813.png)
