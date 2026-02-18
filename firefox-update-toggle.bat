@@ -7,6 +7,7 @@ set "VALUE_NAME=DisableAppUpdate"
 if /I "%~1"=="disable" goto :disable
 if /I "%~1"=="enable" goto :enable
 if /I "%~1"=="status" goto :status
+if /I "%~1"=="restart" goto :restart
 if /I "%~1"=="help" goto :usage
 if /I "%~1"=="--help" goto :usage
 if /I "%~1"=="-h" goto :usage
@@ -24,13 +25,15 @@ echo.
 echo 1^) Disable Firefox updates
 echo 2^) Enable Firefox updates
 echo 3^) Show current status
-echo 4^) Exit
+echo 4^) Close ^& Restart Firefox
+echo 5^) Exit
 echo.
-set /p choice=Select an option [1-4]: 
+set /p choice=Select an option [1-5]:
 if "%choice%"=="1" goto :disable
 if "%choice%"=="2" goto :enable
 if "%choice%"=="3" goto :status
-if "%choice%"=="4" exit /b 0
+if "%choice%"=="4" goto :restart
+if "%choice%"=="5" exit /b 0
 echo Invalid selection.
 echo.
 goto :menu
@@ -90,6 +93,16 @@ if /I "%CURRENT_VALUE%"=="0x0" (
 echo Status: Unknown ^(value=%CURRENT_VALUE%^)
 exit /b 0
 
+:restart
+echo Closing Firefox...
+taskkill /F /IM firefox.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+
+echo Starting Firefox...
+start "" "firefox.exe"
+echo Firefox was restarted.
+exit /b 0
+
 :require_admin
 net session >nul 2>&1
 if errorlevel 1 (
@@ -104,6 +117,7 @@ echo Usage:
 echo   %~nx0 disable
 echo   %~nx0 enable
 echo   %~nx0 status
+echo   %~nx0 restart
 echo.
 echo GUI launcher:
 echo   open-firefox-update-gui.bat

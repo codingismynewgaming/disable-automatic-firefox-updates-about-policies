@@ -8,5 +8,5 @@ if not exist "%GUI_SCRIPT%" (
     exit /b 1
 )
 
-start "" powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -STA -File "%GUI_SCRIPT%"
+start "" powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -STA -File "%GUI_SCRIPT%"
 exit /b 0

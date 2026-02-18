@@ -23,10 +23,13 @@ You can use either a GUI or CLI workflow.
 ## Features
 
 - GUI toggle app (`firefox-update-toggle-gui.ps1`) with current status display (`ENABLED` / `DISABLED` / `UNKNOWN`)
-- One-click actions for Disable, Enable, and Refresh
+- One-click actions for Disable, Enable, **Close & Restart Firefox**, and Refresh
 - Button to open `about:policies` in Firefox
 - Automatic Windows theme detection plus manual Light/Dark switch
-- CLI batch tool (`firefox-update-toggle.bat`) with `disable`, `enable`, `status`, and `help` commands
+- Full dark mode with custom title bar
+- CLI batch tool (`firefox-update-toggle.bat`) with `disable`, `enable`, `status`, `restart`, and `help` commands
+- Interactive menu mode when run without arguments
+- Admin privilege checks for write actions
 
 ## Requirements
 
@@ -38,8 +41,8 @@ You can use either a GUI or CLI workflow.
 1. Run `open-firefox-update-gui.bat`.
 2. Click `Disable Updates` or `Enable Updates`.
 3. Accept the UAC prompt.
-4. Click `Refresh Status` to confirm the result.
-5. Restart Firefox.
+4. Click `Close & Restart Firefox` to restart Firefox after policy change.
+5. Click `Refresh Status` to confirm the result.
 6. Verify in `about:policies`.
 
 ## CLI Usage
@@ -56,6 +59,7 @@ Direct commands:
 firefox-update-toggle.bat disable
 firefox-update-toggle.bat enable
 firefox-update-toggle.bat status
+firefox-update-toggle.bat restart
 firefox-update-toggle.bat help
 ```
 

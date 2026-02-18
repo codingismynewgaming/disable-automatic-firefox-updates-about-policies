@@ -168,6 +168,9 @@ function Set-AppTheme {
 
     if ($Theme -eq "Dark") {
         $form.BackColor = [System.Drawing.Color]::FromArgb(30, 34, 39)
+        $titleBar.BackColor = [System.Drawing.Color]::FromArgb(20, 24, 29)
+        $titleBarLabel.BackColor = [System.Drawing.Color]::FromArgb(20, 24, 29)
+        $titleBarLabel.ForeColor = [System.Drawing.Color]::FromArgb(236, 240, 245)
         $title.ForeColor = [System.Drawing.Color]::FromArgb(236, 240, 245)
         $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(187, 197, 208)
         $themeLabel.ForeColor = [System.Drawing.Color]::FromArgb(187, 197, 208)
@@ -183,8 +186,15 @@ function Set-AppTheme {
         $script:StatusDisabledColor = [System.Drawing.Color]::FromArgb(255, 107, 122)
         $script:StatusEnabledColor = [System.Drawing.Color]::FromArgb(120, 224, 143)
         $script:StatusUnknownColor = [System.Drawing.Color]::FromArgb(255, 201, 107)
+
+        # Dark mode textbox styling
+        $statusDetails.BackColor = [System.Drawing.Color]::FromArgb(20, 24, 29)
+        $statusDetails.ForeColor = [System.Drawing.Color]::FromArgb(226, 233, 240)
     } else {
         $form.BackColor = [System.Drawing.Color]::FromArgb(244, 247, 251)
+        $titleBar.BackColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
+        $titleBarLabel.BackColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
+        $titleBarLabel.ForeColor = [System.Drawing.Color]::FromArgb(236, 240, 245)
         $title.ForeColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
         $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
         $themeLabel.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
@@ -200,6 +210,10 @@ function Set-AppTheme {
         $script:StatusDisabledColor = [System.Drawing.Color]::FromArgb(200, 35, 51)
         $script:StatusEnabledColor = [System.Drawing.Color]::FromArgb(25, 135, 84)
         $script:StatusUnknownColor = [System.Drawing.Color]::FromArgb(220, 149, 0)
+
+        # Light mode textbox styling
+        $statusDetails.BackColor = [System.Drawing.Color]::White
+        $statusDetails.ForeColor = [System.Drawing.Color]::FromArgb(31, 41, 55)
     }
 
     Set-StatusColor -Status $statusValue.Text
@@ -208,15 +222,89 @@ function Set-AppTheme {
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Firefox Update Policy Toggle"
 $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
-$form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+$form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::None
 $form.MaximizeBox = $false
 $form.MinimizeBox = $false
-$form.ClientSize = New-Object System.Drawing.Size(590, 390)
+$form.ClientSize = New-Object System.Drawing.Size(590, 440)
 $form.BackColor = [System.Drawing.Color]::FromArgb(244, 247, 251)
+$form.TopMost = $false
 
+# Custom title bar for dark mode support
+$titleBar = New-Object System.Windows.Forms.Panel
+$titleBar.Location = New-Object System.Drawing.Point(0, 0)
+$titleBar.Size = New-Object System.Drawing.Size(590, 32)
+$titleBar.BackColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
+$titleBar.Cursor = [System.Windows.Forms.Cursors]::SizeAll
+$form.Controls.Add($titleBar)
+
+$titleBarLabel = New-Object System.Windows.Forms.Label
+$titleBarLabel.Text = "Firefox Update Policy Toggle"
+$titleBarLabel.Location = New-Object System.Drawing.Point(10, 8)
+$titleBarLabel.Size = New-Object System.Drawing.Size(350, 20)
+$titleBarLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$titleBarLabel.ForeColor = [System.Drawing.Color]::FromArgb(236, 240, 245)
+$titleBarLabel.BackColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
+$titleBarLabel.Cursor = [System.Windows.Forms.Cursors]::SizeAll
+$titleBar.Controls.Add($titleBarLabel)
+
+$closeButton = New-Object System.Windows.Forms.Button
+$closeButton.Text = "✕"
+$closeButton.Location = New-Object System.Drawing.Point(550, 4)
+$closeButton.Size = New-Object System.Drawing.Size(32, 24)
+$closeButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$closeButton.FlatAppearance.BorderSize = 0
+$closeButton.BackColor = [System.Drawing.Color]::FromArgb(199, 47, 58)
+$closeButton.ForeColor = [System.Drawing.Color]::White
+$closeButton.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Regular)
+$closeButton.Cursor = [System.Windows.Forms.Cursors]::Default
+$titleBar.Controls.Add($closeButton)
+
+$closeButton.Add_Click({ $form.Close() })
+
+# Drag functionality for custom title bar
+$script:isDragging = $false
+$script:dragStartPoint = [System.Drawing.Point]::Empty
+
+$titleBar.Add_MouseDown({
+    if ($_.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+        $script:isDragging = $true
+        $script:dragStartPoint = $_.Location
+    }
+})
+
+$titleBar.Add_MouseMove({
+    if ($script:isDragging) {
+        $form.Left += $_.X - $script:dragStartPoint.X
+        $form.Top += $_.Y - $script:dragStartPoint.Y
+    }
+})
+
+$titleBar.Add_MouseUp({
+    $script:isDragging = $false
+})
+
+$titleBarLabel.Add_MouseDown({
+    if ($_.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+        $script:isDragging = $true
+        $script:dragStartPoint = $titleBar.PointToClient($titleBarLabel.PointToScreen($_.Location))
+    }
+})
+
+$titleBarLabel.Add_MouseMove({
+    if ($script:isDragging) {
+        $form.Left += $_.X - $script:dragStartPoint.X
+        $form.Top += $_.Y - $script:dragStartPoint.Y
+    }
+})
+
+$titleBarLabel.Add_MouseUp({
+    $script:isDragging = $false
+})
+
+# Define main content controls
 $title = New-Object System.Windows.Forms.Label
 $title.Text = "Firefox Update Policy"
-$title.Location = New-Object System.Drawing.Point(22, 18)
+$title.Location = New-Object System.Drawing.Point(22, 42)
 $title.Size = New-Object System.Drawing.Size(350, 34)
 $title.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
 $title.ForeColor = [System.Drawing.Color]::FromArgb(38, 50, 66)
@@ -224,7 +312,7 @@ $form.Controls.Add($title)
 
 $subtitle = New-Object System.Windows.Forms.Label
 $subtitle.Text = "Control automatic updates through organizational policy."
-$subtitle.Location = New-Object System.Drawing.Point(24, 54)
+$subtitle.Location = New-Object System.Drawing.Point(24, 78)
 $subtitle.Size = New-Object System.Drawing.Size(360, 20)
 $subtitle.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
@@ -232,7 +320,7 @@ $form.Controls.Add($subtitle)
 
 $themeLabel = New-Object System.Windows.Forms.Label
 $themeLabel.Text = "Theme"
-$themeLabel.Location = New-Object System.Drawing.Point(404, 26)
+$themeLabel.Location = New-Object System.Drawing.Point(404, 50)
 $themeLabel.Size = New-Object System.Drawing.Size(54, 20)
 $themeLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
 $themeLabel.ForeColor = [System.Drawing.Color]::FromArgb(84, 96, 112)
@@ -240,7 +328,7 @@ $form.Controls.Add($themeLabel)
 
 $themeToggle = New-Object System.Windows.Forms.CheckBox
 $themeToggle.Appearance = [System.Windows.Forms.Appearance]::Button
-$themeToggle.Location = New-Object System.Drawing.Point(462, 20)
+$themeToggle.Location = New-Object System.Drawing.Point(462, 44)
 $themeToggle.Size = New-Object System.Drawing.Size(102, 28)
 $themeToggle.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 $themeToggle.FlatAppearance.BorderSize = 1
@@ -269,7 +357,7 @@ $statusDetails.Location = New-Object System.Drawing.Point(24, 150)
 $statusDetails.Size = New-Object System.Drawing.Size(540, 105)
 $statusDetails.Multiline = $true
 $statusDetails.ReadOnly = $true
-$statusDetails.ScrollBars = [System.Windows.Forms.ScrollBars]::Vertical
+$statusDetails.ScrollBars = [System.Windows.Forms.ScrollBars]::None
 $statusDetails.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
 $statusDetails.BackColor = [System.Drawing.Color]::White
 $statusDetails.Font = New-Object System.Drawing.Font("Consolas", 9)
@@ -284,11 +372,12 @@ $form.Controls.Add($lastUpdated)
 
 $disableButton = New-ActionButton -Text "Disable Updates" -X 24 -Y 290 -BackColor ([System.Drawing.Color]::FromArgb(220, 53, 69))
 $enableButton = New-ActionButton -Text "Enable Updates" -X 210 -Y 290 -BackColor ([System.Drawing.Color]::FromArgb(40, 167, 69))
-$refreshButton = New-ActionButton -Text "Refresh Status" -X 396 -Y 290 -BackColor ([System.Drawing.Color]::FromArgb(0, 123, 255))
-$aboutPoliciesButton = New-ActionButton -Text "Open about:policies" -X 118 -Y 338 -BackColor ([System.Drawing.Color]::FromArgb(108, 117, 125))
-$exitButton = New-ActionButton -Text "Exit" -X 304 -Y 338 -BackColor ([System.Drawing.Color]::FromArgb(52, 58, 64))
+$restartButton = New-ActionButton -Text "Close & Restart Firefox" -X 396 -Y 290 -BackColor ([System.Drawing.Color]::FromArgb(108, 117, 125))
+$refreshButton = New-ActionButton -Text "Refresh Status" -X 24 -Y 338 -BackColor ([System.Drawing.Color]::FromArgb(0, 123, 255))
+$aboutPoliciesButton = New-ActionButton -Text "Open about:policies" -X 210 -Y 338 -BackColor ([System.Drawing.Color]::FromArgb(108, 117, 125))
+$exitButton = New-ActionButton -Text "Exit" -X 396 -Y 338 -BackColor ([System.Drawing.Color]::FromArgb(52, 58, 64))
 
-$form.Controls.AddRange(@($disableButton, $enableButton, $refreshButton, $aboutPoliciesButton, $exitButton))
+$form.Controls.AddRange(@($disableButton, $enableButton, $restartButton, $refreshButton, $aboutPoliciesButton, $exitButton))
 $form.AcceptButton = $refreshButton
 $form.CancelButton = $exitButton
 
@@ -389,6 +478,42 @@ $themeToggle.Add_CheckedChanged({
         Set-AppTheme -Theme "Dark"
     } else {
         Set-AppTheme -Theme "Light"
+    }
+})
+
+$restartButton.Add_Click({
+    $result = [System.Windows.Forms.DialogResult]::No
+
+    $result = [System.Windows.Forms.MessageBox]::Show(
+        "This will close Firefox and restart it immediately.`n`nUnsaved data may be lost. Continue?",
+        "Restart Firefox",
+        [System.Windows.Forms.MessageBoxButtons]::YesNo,
+        [System.Windows.Forms.MessageBoxIcon]::Warning
+    )
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+        Write-Host "Closing Firefox..."
+        taskkill /F /IM firefox.exe > $null 2>&1
+        Start-Sleep -Seconds 2
+
+        Write-Host "Starting Firefox..."
+        $firefox = Get-FirefoxPath
+        if ($firefox) {
+            Start-Process -FilePath $firefox | Out-Null
+            [System.Windows.Forms.MessageBox]::Show(
+                "Firefox has been restarted.",
+                "Firefox Restarted",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Information
+            ) | Out-Null
+        } else {
+            [System.Windows.Forms.MessageBox]::Show(
+                "Firefox executable was not found. Please start Firefox manually.",
+                "Firefox Not Found",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+        }
     }
 })
 
